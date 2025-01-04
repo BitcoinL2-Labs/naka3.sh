@@ -124,18 +124,19 @@ for i in $(seq 0 2); do
    "$naka3" -c "./config-miner-0.sh" node 0 send-tx "$tx"
 done
 
-# mine through Nakamoto activation
-for i in $(seq 0 20); do
-   "$naka3" -c "./config-bitcoind-0.sh" bitcoind mine 1 "$btcaddr_0"
-   sleep 15s
-done
-
+# start sending stx-transfers
 "$naka3" tx begin-transfers \
    "cb3df38053d132895220b9ce471f6b676db5b9bf0b4adefb55f2118ece2478df01" \
    123 \
    "ST11NJTTKGVT6D1HY4NJRVQWMQM7TVAR091EJ8P2Y" \
    1 \
    "/tmp/three-miners-three-signing-followers/end-transfers" &
+
+# mine through Nakamoto activation
+for i in $(seq 0 20); do
+   "$naka3" -c "./config-bitcoind-0.sh" bitcoind mine 1 "$btcaddr_0"
+   sleep 15s
+done
 
 while true; do
    "$naka3" -c "./config-bitcoind-0.sh" bitcoind mine 1 "$btcaddr_0"
