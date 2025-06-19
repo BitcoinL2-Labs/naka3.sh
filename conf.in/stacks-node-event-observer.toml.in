@@ -1,4 +1,3 @@
 [[events_observer]]
 endpoint = "@@SIGNER_ENDPOINT@@"
 events_keys = ["stackerdb", "block_proposal", "burn_blocks"]
-
