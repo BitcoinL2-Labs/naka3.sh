@@ -496,10 +496,12 @@ function add_node_fault_injection() {
 # Writes the PID to the given .pid file
 # $1: config file
 # $2: node ID
+# $3: resume (true|false)
 # prints the result
 function start_node() {
    local conf_path="$1"
    local node_id="$2"
+   local resume="$3"
    local pid_path
    local datadir
 
@@ -517,8 +519,8 @@ function start_node() {
       return 0
    fi
 
-   if [ -d "$datadir" ]; then
-      echo "rm -rf '$datadir'"
+   if [ -d "$datadir" ] && [[ "$resume" != "true" ]]; then
+      rm -rf "$datadir"
       mkdir -p "$datadir"
    fi
 
@@ -880,10 +882,10 @@ function usage() {
          exit_error "Usage: $PROGNAME bitcoin-cli [args...]"
          ;;
       signer)
-         exit_error "Usage: $PROGNAME signer [signer_id] config|start|stop|logs|stack-tx"
+         exit_error "Usage: $PROGNAME signer [signer_id] config|start|resume|stop|logs|stack-tx"
          ;;
       node)
-         exit_error "Usage: $PROGNAME node [node_id] config-miner|config-follower|config-miner-stacker|config-follower-stacker|miner-addr|start|stop|logs"
+         exit_error "Usage: $PROGNAME node [node_id] config-miner|config-follower|config-miner-stacker|config-follower-stacker|miner-addr|start|resume|stop|logs"
          ;;
       tx)
          exit_error "Usage: $PROGNAME tx transfer|begin-transfers|end-transfers [args...]"
@@ -1005,6 +1007,11 @@ function main() {
 
             start)
                echo -n "Starting signer '$signer_id'... "
+               start_signer "$CONFIG" "$signer_id"
+               ;;
+            
+            resume)
+               echo -n "Resuming signer '$signer_id'... "
                start_signer "$CONFIG" "$signer_id"
                ;;
 
@@ -1181,7 +1188,12 @@ function main() {
 
             start)
                echo -n "Starting node '$node_id'... "
-               start_node "$CONFIG" "$node_id"
+               start_node "$CONFIG" "$node_id" "false"
+               ;;
+
+            resume)
+               echo -n "Resuming node '$node_id'... "
+               start_node "$CONFIG" "$node_id" "true"
                ;;
 
             stop)
