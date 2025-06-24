@@ -885,7 +885,7 @@ function usage() {
          exit_error "Usage: $PROGNAME signer [signer_id] config|start|resume|stop|logs|stack-tx"
          ;;
       node)
-         exit_error "Usage: $PROGNAME node [node_id] config-miner|config-follower|config-miner-stacker|config-follower-stacker|miner-addr|start|resume|stop|logs"
+         exit_error "Usage: $PROGNAME node [node_id] config-miner|config-follower|config-miner-stacker|config-follower-stacker|miner-addr|start|resume|stop|logs|send-tx|burn-height"
          ;;
       tx)
          exit_error "Usage: $PROGNAME tx transfer|begin-transfers|end-transfers [args...]"
@@ -1229,7 +1229,23 @@ function main() {
 
                send_tx "$tx" "$stacks_host" "$rpcport"
                ;;
+            
+            burn-height)
+               local node_config_path
+               local stacks_host
+               local rpcport
+               local content_length
+
+               source "$CONFIG"
                
+               node_conf_path="$(get_node_config_path "$CONFIG" "$node_id")"
+               stacks_host="$(conf_get_stacks_host)"
+               rpcport="$(conf_get_stacks_rpc_port)"
+
+               value=$(curl -sL 127.0.0.1:$rpcport/v2/info | jq '.burn_block_height')
+               echo $value
+               ;;
+
             *)
                usage "node"
                ;;

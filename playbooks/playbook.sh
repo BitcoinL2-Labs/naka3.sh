@@ -69,9 +69,60 @@ function playbook_run() {
 
             playbook_stop
             ;;
+        
+        snapshot)
+            local sub
+            set +ue
+            sub="$2"
+            set -ue
+
+            echo "Subcommand is '$sub'"
+            case "$sub" in 
+                create)
+                    snap_basedir="$playbook_basedir"_snapshot
+                    echo "Snapshotting $playbook_basedir ... "
+                    
+                    require_func "playbook_start"
+
+                    rm -rf "$playbook_basedir"
+                    rm -rf "$snap_basedir"
+                    mkdir -p "$snap_basedir"
+
+                    playbook_start
+                    playbook_stop
+                    sleep 10
+                    cp -r "$playbook_basedir"/. "$snap_basedir"/
+                    #rsync -a --ignore-errors "$playbook_basedir" "$snap_basedir"
+                    ;;
+
+                restore)
+                    snap_basedir="$playbook_basedir"_snapshot
+                    echo "Restoring snapshot from $snap_basedir ... "
+
+                    require_func "playbook_resume"
+                    
+                    if ! [ -d "$snap_basedir" ]; then
+                        echo "Snapshot doesn't exist: $snap_basedir"
+                        exit 1
+                    fi
+
+                    rm -rf "$playbook_basedir"
+                    mkdir -p "$playbook_basedir"
+                    cp -r "$snap_basedir"/. "$playbook_basedir"/
+                    #rsync -a --ignore-errors "$snap_basedir" "$playbook_basedir"
+
+                    playbook_resume
+                    playbook_loop
+                    ;;
+
+                *)        
+                    echo "Usage: $_SOURCER start|resume|stop|snapshot [create, restore]"
+                    ;;
+            esac
+            ;;
 
         *)
-            echo "Usage: $_SOURCER start|resume|stop"
+            echo "Usage: $_SOURCER start|resume|stop|snapshot [create, restore]"
             ;;
     esac
 }

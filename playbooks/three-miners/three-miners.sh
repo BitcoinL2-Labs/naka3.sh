@@ -34,6 +34,7 @@ function playbook_start() {
    "$naka3" -c "./config-bitcoind-2.sh" bitcoind peer "127.0.0.1" "18332"
    "$naka3" -c "./config-bitcoind-2.sh" bitcoind peer "127.0.0.1" "28332"
 
+   # Mined 105 bitcoin blocks
    for i in $(seq 0 34); do
       "$naka3" -c "./config-bitcoind-0.sh" bitcoind mine 1 "$btcaddr_0"
       sleep 0.5s
@@ -43,8 +44,6 @@ function playbook_start() {
       sleep 0.5s
    done
    
-   # at 105 bitcoin blocks
-
    # boot signers
    "$naka3" -c "./config-signer-0.sh" signer 0 start
    "$naka3" -c "./config-signer-1.sh" signer 1 start
@@ -56,7 +55,8 @@ function playbook_start() {
    "$naka3" -c "./config-miner-2.sh" node 2 start
 
    # advance to epoch 2.5 (starts at 108)
-   for i in $(seq 0 5); do
+   # Mined 112 bitcoin blocks
+   for i in $(seq 0 6); do
       sleep 10
       "$naka3" -c "./config-bitcoind-0.sh" bitcoind mine 1 "$btcaddr_0"
    done
@@ -67,8 +67,9 @@ function playbook_start() {
       "$naka3" -c "./config-miner-0.sh" node 0 send-tx "$tx"
    done
 
-   # mine through Nakamoto activation
-   for i in $(seq 0 20); do
+   # mine through Nakamoto activation (epoch 3.1 starts at 141)
+   # Mined 141 bitcoin blocks
+   for i in $(seq 0 28); do
       "$naka3" -c "./config-bitcoind-0.sh" bitcoind mine 1 "$btcaddr_0"
       sleep 15s
    done
