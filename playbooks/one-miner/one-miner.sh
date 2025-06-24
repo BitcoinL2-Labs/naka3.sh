@@ -36,6 +36,7 @@ function playbook_start() {
    "$naka3" node 0 start
 
    # advance to epoch 2.5 (starts at 108)
+   # go to 112
    for i in $(seq 0 10); do
       sleep 10
       "$naka3" bitcoind mine 1 "$btcaddr"
@@ -47,19 +48,27 @@ function playbook_start() {
       "$naka3" node 0 send-tx "$tx"
    done
 
-   touch "/tmp/one-miner/mine"
-   # advance to epoch 3.1 (starts at 141)
-   for i in $(seq 0 20); do
+   burn_mined=112
+   TARGET_HEIGHT=141
+   while true; do
+      curr_bh="$("$naka3" node 0 burn-height)"
+      echo "Node Burn Height: $curr_bh"
+
+      if [[ "$curr_bh" -ge "$TARGET_HEIGHT" ]]; then
+        echo "Target burn_block_height $TARGET_HEIGHT reached!"
+        break
+      fi
+
+      if [[ "$curr_bh" -lt "$burn_mined" ]]; then
+        echo "Waiting to catch-up: $curr_bh/$burn_mined"
+        sleep 1s
+        continue
+      fi
+
       "$naka3" bitcoind mine 1 "$btcaddr"
+      burn_mined=$((burn_mined + 1))
       sleep 15s
    done
-
-   "$naka3" tx begin-transfers \
-   "cb3df38053d132895220b9ce471f6b676db5b9bf0b4adefb55f2118ece2478df01" \
-   123 \
-   "ST11NJTTKGVT6D1HY4NJRVQWMQM7TVAR091EJ8P2Y" \
-   1 \
-   "/tmp/one-miner/end-transfers" &
 }
 
 function playbook_resume() {
